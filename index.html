@@ -150,7 +150,6 @@
             { name: "XIX. The Sun", th: "เดอะ ซัน", meaning: "ความสุข ความสำเร็จ ความสดใส พลังงานบวก", img: "https://upload.wikimedia.org/wikipedia/commons/1/17/Rider-Waite_Tarot_19_Sun.jpg" },
             { name: "XX. Judgement", th: "จัดจ์เมนต์", meaning: "การตื่นรู้ ได้โอกาสแก้ตัว ผลลัพธ์จากอดีต", img: "https://upload.wikimedia.org/wikipedia/commons/d/dd/Rider-Waite_Tarot_20_Judgement.jpg" },
             { name: "XXI. The World", th: "เดอะ เวิลด์", meaning: "ความสำเร็จสมบูรณ์ การเดินทาง จบสิ้นภารกิจงดงาม", img: "https://upload.wikimedia.org/wikipedia/commons/f/ff/Rider-Waite_Tarot_21_World.jpg" },
-
             // --- Minor Arcana: Wands / ไม้เท้า (14 ใบ) ---
             { name: "Ace of Wands", th: "เอซไม้เท้า", meaning: "จุดเริ่มต้นโปรเจกต์ใหม่ พลังงานแรง ความคิดสร้างสรรค์", img: "https://upload.wikimedia.org/wikipedia/commons/1/11/Wands01.jpg" },
             { name: "Two of Wands", th: "2 ไม้เท้า", meaning: "การวางแผนอนาคต การมองหาโอกาส ขยายขอบเขต", img: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Wands02.jpg" },
@@ -240,4 +239,50 @@
                 if (card) currentCards.push(card);
             }
             renderCards();
-            document.getElementById('draw3Btn').di
+            document.getElementById('draw3Btn').disabled = true;
+            document.getElementById('drawExtraBtn').disabled = false;
+        }
+
+        function drawExtraCard() {
+            if (currentCards.length < 5) {
+                let card = getRandomCard(currentCards.map(c => c.name));
+                if (card) {
+                    currentCards.push(card);
+                    renderCards();
+                }
+                if (currentCards.length >= 5) {
+                    document.getElementById('drawExtraBtn').disabled = true;
+                }
+            }
+        }
+
+        function resetCards() {
+            currentCards = [];
+            document.getElementById('cardsContainer').innerHTML = '';
+            document.getElementById('draw3Btn').disabled = false;
+            document.getElementById('drawExtraBtn').disabled = true;
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+            currentCards.forEach((card, index) => {
+                let box = document.createElement('div');
+                box.className = 'card-box';
+                box.innerHTML = `
+                    <div class="card-img-container">
+                        <img src="${card.img}" alt="${card.name}" class="card-img">
+                    </div>
+                    <div class="card-info">
+                        <div class="position-label">${positionLabels[index]}</div>
+                        <div class="card-title">${card.name} (${card.th})</div>
+                        <div class="card-desc">${card.meaning}</div>
+                    </div>
+                `;
+                container.appendChild(box);
+            });
+        }
+    </script>
+
+</body>
+</html>

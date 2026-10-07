@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarot & Siemtsi - Private Reader</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 15px;
+            text-align: center;
+        }
+        h1 {
+            color: #d4af37;
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+        p.subtitle {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-bottom: 15px;
+        }
+        /* แถบเมนูสลับหน้า (Tabs) */
+        .tab-container {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .tab-btn {
+            background-color: #2a2a2a;
+            color: #aaa;
+            border: 1px solid #444;
+            padding: 10px 20px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .tab-btn.active {
+            background-color: #d4af37;
+            color: #121212;
+            border-color: #d4af37;
+            box-shadow: 0 4px 10px rgba(212, 175, 55, 0.3);
+        }
+        /* ส่วนแสดงเนื้อหาแต่ละหน้า */
+        .section-content {
+            display: none;
+        }
+        .section-content.active {
+            display: block;
+        }
+        .btn-container {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+        button {
+            background-color: #d4af37;
+            color: #121212;
+            border: none;
+            padding: 12px 18px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+        button:disabled {
+            background-color: #444;
+            color: #888;
+            cursor: not-allowed;
+        }
+        .cards-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+            max-width: 450px;
+            margin: 0 auto;
+        }
+        .card-box {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 12px;
+            padding: 15px;
+            width: 100%;
+            box-sizing: border-box;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            text-align: left;
+        }
+        .card-img-container {
+            flex-shrink: 0;
+            width: 90px;
+            height: 150px;
+            border-radius: 6px;
+            overflow: hidden;
+            border: 1px solid #d4af37;
+            background-color: #000;
+        }
+        .card-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .card-info {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .position-label {
+            font-size: 0.75rem;
+            color: #d4af37;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+        .card-title {
+            color: #fff;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+        .card-desc {
+            font-size: 0.85rem;
+            color: #ccc;
+            line-height: 1.3;
+        }
+         /* ดีไซน์ส่วนเซียมซี (ห้องสิน 72 ใบ พร้อมลายน้ำอากงเทพสามตา ความชัด 0.30) */
+        .siemtsi-box {
+            position: relative;
+            background-color: #1e1e1e;
+            border: 1px solid #d4af37;
+            border-radius: 12px;
+            padding: 20px;
+            max-width: 480px;
+            margin: 0 auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            text-align: left;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .siemtsi-box::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Erlang_Shen_Ming_Dynasty.jpg/800px-Erlang_Shen_Ming_Dynasty.jpg');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.30;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .siemtsi-header {
+            text-align: center;
+            border-bottom: 1px solid #444;
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+        .siemtsi-number {
+            font-size: 1rem;
+            color: #d4af37;
+            font-weight: bold;
+        }
+        .siemtsi-title {
+            font-size: 1.2rem;
+            color: #fff;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .siemtsi-status {
+            display: inline-block;
+            background-color: rgba(212, 175, 55, 0.2);
+            color: #d4af37;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+        .siemtsi-section-title {
+            color: #d4af37;
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-top: 10px;
+            margin-bottom: 2px;
+        }
+        .siemtsi-text {
+            font-size: 0.85rem;
+            color: #e0e0e0;
+            line-height: 1.4;
+            background-color: rgba(18, 18, 18, 0.8);
+            padding: 8px 10px;
+            border-radius: 6px;
+            margin-bottom: 8px;
+        }
+         </style>
+</head>
+<body>
+
+    <h1>🔮 Private Fortune Telling</h1>
+    <p class="subtitle">เลือกรูปแบบการทำนายที่คุณต้องการ</p>
+
+    <!-- แถบกดสลับหน้า -->
+    <div class="tab-container">
+        <button id="tabTarot" class="tab-btn active" onclick="switchTab('tarot')">🎴 เปิดไพ่ยิปซี</button>
+        <button id="tabSiemtsi" class="tab-btn" onclick="switchTab('siemtsi')">🎋 เสี่ยงเซียมซีห้องสิน</button>
+    </div>
+
+    <!-- หน้าที่ 1: ระบบไพ่ยิปซี -->
+    <div id="tarotSection" class="section-content active">
+        <div class="btn-container">
+            <button id="draw3Btn" onclick="drawInitialCards()">สุ่ม 3 ใบหลัก</button>
+            <button id="drawExtraBtn" onclick="drawExtraCard()" disabled>สุ่มเพิ่ม (+1 ใบ)</button>
+            <button onclick="resetCards()" style="background-color: #333; color: #fff;">รีเซ็ตใหม่</button>
+        </div>
+        <div class="cards-grid" id="cardsContainer">
+            <!-- ผลลัพธ์ไพ่ -->
+        </div>
+    </div>
+
+    <!-- หน้าที่ 2: ระบบเซียมซีห้องสิน (ครบ 72 ใบ) -->
+    <div id="siemtsiSection" class="section-content">
+        <div class="btn-container">
+            <button onclick="drawSiemtsi()">🎋 เสี่ยงเซียมซี (เขย่าติ้ว)</button>
+        </div>
+        <div id="siemtsiResultContainer">
+            <div class="siemtsi-box" style="text-align: center;">
+                <div class="siemtsi-title">กดปุ่มด้านบนเพื่อเสี่ยงทายเซียมซีห้องสิน</div>
+                <div class="siemtsi-text" style="background: transparent; text-align: center;">ตั้งจิตอธิษฐานแล้วกดเสี่ยงทายเพื่อรับคำทำนายมงคลจากอากงเทพสามตา</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabName) {
+            document.getElementById('tarotSection').classList.remove('active');
+            document.getElementById('siemtsiSection').classList.remove('active');
+            document.getElementById('tabTarot').classList.remove('active');
+            document.getElementById('tabSiemtsi').classList.remove('active');
+
+            if (tabName === 'tarot') {
+                document.getElementById('tarotSection').classList.add('active');
+                document.getElementById('tabTarot').classList.add('active');
+            } else {
+                document.getElementById('siemtsiSection').classList.add('active');
+                document.getElementById('tabSiemtsi').classList.add('active');
+            }
+        }
+        // --- ชุดไพ่ยิปซี ---
+        const tarotDeck = [
+            { name: "Ace of Wands", th: "เอซไม้เท้า", meaning: "จุดเริ่มต้นโปรเจกต์ใหม่ พลังงานแรง ความคิดสร้างสรรค์", img: "https://upload.wikimedia.org/wikipedia/commons/1/11/Wands01.jpg" },
+            { name: "Two of Wands", th: "2 ไม้เท้า", meaning: "การวางแผนอนาคต การมองหาโอกาส ขยายขอบเขต", img: "https://upload.wikimedia.org/wikipedia/commons/0/0f/Wands02.jpg" },
+            { name: "Three of Wands", th: "3 ไม้เท้า", meaning: "รอคอยผลลัพธ์ ขยายกิจการ การเติบโตและการเดินทาง", img: "https://upload.wikimedia.org/wikipedia/commons/f/ff/Wands03.jpg" },
+            { name: "Four of Wands", th: "4 ไม้เท้า", meaning: "ความมั่นคง ความสุข ความสำเร็จเฉลิมฉลอง บ้านใหม่", img: "https://upload.wikimedia.org/wikipedia/commons/a/a4/Wands04.jpg" },
+            { name: "Five of Wands", th: "5 ไม้เท้า", meaning: "การแข่งขัน ความขัดแย้งเล็กน้อย แย่งชิงความโดดเด่น", img: "https://upload.wikimedia.org/wikipedia/commons/d/df/Wands05.jpg" },
+            { name: "Six of Wands", th: "6 ไม้เท้า", meaning: "ชัยชนะ ได้รับการยอมรับ ข่าวดี คนชื่นชม", img: "https://upload.wikimedia.org/wikipedia/commons/e/e4/Wands06.jpg" },
+            { name: "Seven of Wands", th: "7 ไม้เท้า", meaning: "ปกป้องจุดยืน การแข่งขันดุเดือด แรงกดดันรอบด้าน", img: "https://upload.wikimedia.org/wikipedia/commons/5/52/Wands07.jpg" },
+            { name: "Eight of Wands", th: "8 ไม้เท้า", meaning: "ความรวดเร็ว ข่าวสารไว เดินทางฉับพลัน ทุกอย่างเดินหน้า", img: "https://upload.wikimedia.org/wikipedia/commons/c/c2/Wands08.jpg" },
+            { name: "Nine of Wands", th: "9 ไม้เท้า", meaning: "ความระแวดระวัง เหนื่อยล้าใกล้สำเร็จ ป้องกันตัว", img: "https://upload.wikimedia.org/wikipedia/commons/e/e7/Wands09.jpg" },
+            { name: "Ten of Wands", th: "10 ไม้เท้า", meaning: "ภาระหน้าที่หนักอึ้ง ความเครียด รับผิดชอบคนเดียว", img: "https://upload.wikimedia.org/wikipedia/commons/0/0b/Wands10.jpg" },
+            { name: "Page of Wands", th: "เด็กถือไม้เท้า", meaning: "ข่าวดีเรื่องงาน ไอเดียสร้างสรรค์ เด็กหนุ่มไฟแรง", img: "https://upload.wikimedia.org/wikipedia/commons/6/6a/Wands11.jpg" },
+            { name: "Knight of Wands", th: "อัศวินไม้เท้า", meaning: "เดินทางรวดเร็ว ใจร้อน กระตือรือร้น", img: "https://upload.wikimedia.org/wikipedia/commons/1/16/Wands12.jpg" },
+            { name: "Queen of Wands", th: "ราชินีไม้เท้า", meaning: "ผู้หญิงมีเสน่ห์ มั่นใจ ผู้นำ ทำงานเก่ง รักอิสระ", img: "https://upload.wikimedia.org/wikipedia/commons/0/0d/Wands13.jpg" },
+            { name: "King of Wands", th: "ราชาไม้เท้า", meaning: "ผู้ชายมีวิสัยทัศน์ นักธุรกิจ ผู้นำ เด็ดขาด", img: "https://upload.wikimedia.org/wikipedia/commons/c/ce/Wands14.jpg" },
+
+            { name: "Ace of Cups", th: "เอซถ้วย", meaning: "ความรักครั้งใหม่ หัวใจพองโต สุขล้นปรี่", img: "https://upload.wikimedia.org/wikipedia/commons/3/36/Cups01.jpg" },
+            { name: "Two of Cups", th: "2 ถ้วย", meaning: "ร่วมหุ้น ความรักความเข้าใจ ตกลงปลงใจลงตัว", img: "https://upload.wikimedia.org/wikipedia/commons/f/f8/Cups02.jpg" },
+            { name: "Three of Cups", th: "3 ถ้วย", meaning: "เฉลิมฉลอง ปาร์ตี้ สังสรรค์ มิตรภาพที่ดี", img: "https://upload.wikimedia.org/wikipedia/commons/7/7a/Cups03.jpg" },
+            { name: "Four of Cups", th: "4 ถ้วย", meaning: "ความเบื่อหน่าย เมินเฉย ข้อเสนอที่ยังไม่ถูกใจ", img: "https://upload.wikimedia.org/wikipedia/commons/3/35/Cups04.jpg" },
+            { name: "Five of Cups", th: "5 ถ้วย", meaning: "ความเสียใจ ผิดหวัง จมกับอดีต แต่ยังมีสิ่งดีเหลือ", img: "https://upload.wikimedia.org/wikipedia/commons/d/d7/Cups05.jpg" },
+            { name: "Six of Cups", th: "6 ถ้วย", meaning: "ความทรงจำวัยเด็ก คนเก่ากลับมา บริสุทธิ์ใจ", img: "https://upload.wikimedia.org/wikipedia/commons/1/17/Cups06.jpg" },
+            { name: "Seven of Cups", th: "7 ถ้วย", meaning: "ภาพลวงตา ตัวเลือกเยอะลังเล เพ้อฝัน", img: "https://upload.wikimedia.org/wikipedia/commons/a/ae/Cups07.jpg" },
+            { name: "Eight of Cups", th: "8 ถ้วย", meaning: "เดินออกมาจากสิ่งไม่ตอบโจทย์ แสวงหาความหมายใหม่", img: "https://upload.wikimedia.org/wikipedia/commons/6/60/Cups08.jpg" },
+            { name: "Nine of Cups", th: "9 ถ้วย", meaning: "ความสุขสมหวังดั่งใจปรารถนา พึงพอใจในสิ่งที่มี", img: "https://upload.wikimedia.org/wikipedia/commons/2/24/Cups09.jpg" },
+            { name: "Ten of Cups", th: "10 ถ้วย", meaning: "สุขในครอบครัว ความรักสมบูรณ์แบบ อบอุ่นระยะยาว", img: "https://upload.wikimedia.org/wikipedia/commons/8/84/Cups10.jpg" },
+            { name: "Page of Cups", th: "เด็กถือถ้วย", meaning: "ข้อความรัก อ่อนโยน เซอร์ไพรส์ทางใจ ข่าวดี", img: "https://upload.wikimedia.org/wikipedia/commons/a/ad/Cups11.jpg" },
+            { name: "Knight of Cups", th: "อัศวินถ้วย", meaning: "ข้อเสนอความรัก หนุ่มเจ้าเสน่ห์ โรแมนติก", img: "https://upload.wikimedia.org/wikipedia/commons/f/fa/Cups12.jpg" },
+            { name: "Queen of Cups", th: "ราชินีถ้วย", meaning: "ผู้หญิงใจดี อ่อนโยน เห็นอกเห็นใจ สัญชาตญาณแม่น", img: "https://upload.wikimedia.org/wikipedia/commons/6/62/Cups13.jpg" },
+            { name: "King of Cups", th: "ราชาถ้วย", meaning: "ผู้ชายใจเย็น คุมอารมณ์เก่ง เป็นที่ปรึกษา เมตตา", img: "https://upload.wikimedia.org/wikipedia/commons/0/04/Cups14.jpg" },
+
+            { name: "Ace of Swords", th: "เอซดาบ", meaning: "ความคิดเฉียบคม ตัดสินใจเด็ดขาด ชัยชนะปัญญา", img: "https://upload.wikimedia.org/wikipedia/commons/1/1a/Swords01.jpg" },
+            { name: "Two of Swords", th: "2 ดาบ", meaning: "ปิดกั้นทางเลือก ลังเลใจ หลีกเลี่ยงเผชิญหน้า", img: "https://upload.wikimedia.org/wikipedia/commons/9/9e/Swords02.jpg" },
+            { name: "Three of Swords", th: "3 ดาบ", meaning: "เสียใจ อกหัก ผิดหวัง คำพูดทำร้ายจิตใจ เจ็บปวด", img: "https://upload.wikimedia.org/wikipedia/commons/0/02/Swords03.jpg" },
+            { name: "Four of Swords", th: "4 ดาบ", meaning: "การพักผ่อน หยุดพักชาร์จแบต สงบจิตใจ", img: "https://upload.wikimedia.org/wikipedia/commons/b/bf/Swords04.jpg" },
+            { name: "Five of Swords", th: "5 ดาบ", meaning: "พ่ายแพ้ ความขัดแย้ง ชัยชนะไม่น่าจดจำ ถูกเอาเปรียบ", img: "https://upload.wikimedia.org/wikipedia/commons/2/23/Swords05.jpg" },
+            { name: "Six of Swords", th: "6 ดาบ", meaning: "ย้ายถิ่นฐาน พ้นช่วงลำบากสู่ที่ที่ดีขึ้น เยียวยาใจ", img: "https://upload.wikimedia.org/wikipedia/commons/2/29/Swords06.jpg" },
+            { name: "Seven of Swords", th: "7 ดาบ", meaning: "แอบทำลับหลัง เล่ห์เหลี่ยม ขโมยไอเดีย ไม่ซื่อสัตย์", img: "https://upload.wikimedia.org/wikipedia/commons/3/34/Swords07.jpg" },
+            { name: "Eight of Swords", th: "8 ดาบ", meaning: "รู้สึกติดกับดัก อึดอัดทางความคิด หาทางออกไม่เจอ", img: "https://upload.wikimedia.org/wikipedia/commons/a/a7/Swords08.jpg" },
+            { name: "Nine of Swords", th: "9 ดาบ", meaning: "เครียดวิตกกังวล นอนไม่หลับ กลัวอนาคต คิดมาก", img: "https://upload.wikimedia.org/wikipedia/commons/2/2e/Swords09.jpg" },
+            { name: "Ten of Swords", th: "10 ดาบ", meaning: "จุดจบเจ็บปวด โดนหักหลังใหญ่ ล้มเหลวแต่เริ่มฟื้น", img: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Swords10.jpg" },
+            { name: "Page of Swords", th: "เด็กถือดาบ", meaning: "สอดส่องหาข้อมูล อยากรู้อยากเห็น ระแวดระวัง", img: "https://upload.wikimedia.org/wikipedia/commons/4/4c/Swords11.jpg" },
+            { name: "Knight of Swords", th: "อัศวินดาบ", meaning: "ใจร้อน พุ่งชน บุกด้วยเหตุผล โต้เถียงดุเดือด", img: "https://upload.wikimedia.org/wikipedia/commons/b/b0/Swords12.jpg" },
+            { name: "Queen of Swords", th: "ราชินีดาบ", meaning: "ผู้หญิงเด็ดเดี่ยว ฉลาด เฉียบคม มองคนทะลุปรุโปร่ง", img: "https://upload.wikimedia.org/wikipedia/commons/d/d4/Swords13.jpg" },
+            { name: "King of Swords", th: "ราชาดาบ", meaning: "ผู้พิพากษา นักกฎหมาย ใช้เหตุผลยุติธรรมเคร่งครัด", img: "https://upload.wikimedia.org/wikipedia/commons/3/33/Swords14.jpg" },
+
+            { name: "Ace of Pentacles", th: "เอซเหรียญ", meaning: "โอกาสทองเรื่องเงิน โชคลาภ ทรัพย์สินมั่นคง", img: "https://upload.wikimedia.org/wikipedia/commons/f/fd/Pentacles01.jpg" },
+            { name: "Two of Pentacles", th: "2 เหรียญ", meaning: "บริหารจัดการเงิน หมุนเงิน ปรับตัวกับภาระหลายอย่าง", img: "https://upload.wikimedia.org/wikipedia/commons/4/42/Pentacles02.jpg" },
+            { name: "Three of Pentacles", th: "3 เหรียญ", meaning: "รายได้จากงานร่วมกัน ฝีมือได้รับการยอมรับ ค่าตอบแทนดี", img: "https://upload.wikimedia.org/wikipedia/commons/3/3c/Pentacles03.jpg" },
+            { name: "Four of Pentacles", th: "4 เหรียญ", meaning: "ความตระหนี่ หวงแหนทรัพย์สิน มั่นคงปลอดภัยสูง", img: "https://upload.wikimedia.org/wikipedia/commons/3/32/Pentacles04.jpg" },
+            { name: "Five of Pentacles", th: "5 เหรียญ", meaning: "ปัญหาการเงิน ยากลำบาก ขาดแคลนโดดเดี่ยว", img: "https://upload.wikimedia.org/wikipedia/commons/d/fb/Pentacles05.jpg" },
+            { name: "Six of Pentacles", th: "6 เหรียญ", meaning: "การแบ่งปัน ช่วยเหลือหรือได้รับความช่วยเหลือ ให้และรับ", img: "https://upload.wikimedia.org/wikipedia/commons/0/03/Pentacles06.jpg" },
+            { name: "Seven of Pentacles", th: "7 เหรียญ", meaning: "ประเมินผลงาน รอคอยผลผลิตลงทุนระยะยาว", img: "https://upload.wikimedia.org/wikipedia/commons/b/b5/Pentacles07.jpg" },
+            { name: "Eight of Pentacles", th: "8 เหรียญ", meaning: "ตั้งใจทำงาน ขยันขันแข็ง ฝึกฝนทักษะสร้างรายได้", img: "https://upload.wikimedia.org/wikipedia/commons/b/bb/Pentacles08.jpg" },
+            { name: "Nine of Pentacles", th: "9 เหรียญ", meaning: "ความมั่งคั่ง สบายใจ ชีวิตอิสระ กำไรลงทุนงอกงาม", img: "https://upload.wikimedia.org/wikipedia/commons/8/88/Pentacles09.jpg" },
+            { name: "Ten of Pentacles", th: "10 เหรียญ", meaning: "มั่งคั่งระดับครอบครัว มรดก ทรัพย์สินระยะยาว", img: "https://upload.wikimedia.org/wikipedia/commons/1/1d/Pentacles10.jpg" },
+            { name: "Page of Pentacles", th: "เด็กถือเหรียญ", meaning: "โอกาสเงินทอง เริ่มเรียนรู้ทักษะอาชีพ ข่าวดีรายได้", img: "https://upload.wikimedia.org/wikipedia/commons/2/26/Pentacles11.jpg" },
+            { name: "Knight of Pentacles", th: "อัศวินเหรียญ", meaning: "ขยันมั่นคง ทำงานรอบคอบ ช้าแต่มั่นใจ ปลอดภัย", img: "https://upload.wikimedia.org/wikipedia/commons/1/16/Pentacles12.jpg" },
+            { name: "Queen of Pentacles", th: "ราชินีเหรียญ", meaning: "ผู้หญิงสายซัพพอร์ต บริหารเงินเก่ง รักครอบครัว", img: "https://upload.wikimedia.org/wikipedia/commons/0/09/Pentacles13.jpg" },
+            { name: "King of Pentacles", th: "ราชาเหรียญ", meaning: "เศรษฐี นักลงทุน นักธุรกิจผู้มั่งคั่ง สำเร็จการเงิน", img: "https://upload.wikimedia.org/wikipedia/commons/1/1c/Pentacles14.jpg" }
+        ];
+
+        const positionLabels = [
+            "ตำแหน่งที่ 1: สถานการณ์ปัจจุบัน / อดีตที่ส่งผล",
+            "ตำแหน่งที่ 2: ปัญหา / อุปสรรคที่ต้องเจอ",
+            "ตำแหน่งที่ 3: แนวโน้ม / คำแนะนำ (สรุป)",
+            "ตำแหน่งที่ 4: เจาะลึกเพิ่มเติม (มุมมองเสริม)",
+            "ตำแหน่งที่ 5: บทสรุปผลลัพธ์ / โชคลาภ"
+        ];
+
+        let currentCards = [];
+
+        function getRandomCard(excludeList) {
+            let available = tarotDeck.filter(card => !excludeList.includes(card.name));
+            if (available.length === 0) return null;
+            let randomIndex = Math.floor(Math.random() * available.length);
+            return available[randomIndex];
+        }
+
+        function drawInitialCards() {
+            currentCards = [];
+            for (let i = 0; i < 3; i++) {
+                let card = getRandomCard(currentCards.map(c => c.name));
+                if (card) currentCards.push(card);
+            }
+            renderCards();
+            document.getElementById('draw3Btn').disabled = true;
+            document.getElementById('drawExtraBtn').disabled = false;
+        }
+
+        function drawExtraCard() {
+            if (currentCards.length < 5) {
+                let card = getRandomCard(currentCards.map(c => c.name));
+                if (card) {
+                    currentCards.push(card);
+                    renderCards();
+                }
+                if (currentCards.length >= 5) {
+                    document.getElementById('drawExtraBtn').disabled = true;
+                }
+            }
+        }
+
+        function resetCards() {
+            currentCards = [];
+            document.getElementById('cardsContainer').innerHTML = '';
+            document.getElementById('draw3Btn').disabled = false;
+            document.getElementById('drawExtraBtn').disabled = true;
+        }
+
+        function renderCards() {
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+            currentCards.forEach((card, index) => {
+                let box = document.createElement('div');
+                box.className = 'card-box';
+                box.innerHTML = `
+                    <div class="card-img-container">
+                        <img src="${card.img}" alt="${card.name}" class="card-img">
+                    </div>
+                    <div class="card-info">
+                        <div class="position-label">${positionLabels[index]}</div>
+                        <div class="card-title">${card.name} (${card.th})</div>
+                        <div class="card-desc">${card.meaning}</div>
+                    </div>
+                `;
+                container.appendChild(box);
+            });
+        }
+
+       // --- ฐานข้อมูลเซียมซีห้องสิน ครบทั้ง 72 ใบ ---
+        const siemtsiDatabase = {
+            1: { name: "เทพสามตาเอ้อหลางเสิน", status: "🌟 ใบเฮงที่สุด / มงคลสูงสุด", overview: "ดวงตาทิพย์เปิดส่องสว่างทะลุทุกความมืดมิด สิ่งที่ปรารถนาไว้จะสัมฤทธิ์ผลอย่างอัศจรรย์ ฟ้าเปิดดินเปิด ไร้อุปสรรคขวางกั้น", careerFinance: "งานใหญ่ประสบความสำเร็จอย่างไร้ที่ติ มีอำนาจ บารมี และการยอมรับจากรอบด้าน การเงินไหลมาเทมา ทรัพย์สินพอกพูน มีเกณฑ์รับโชคก้อนใหญ่", love: "คนโสดพบเนื้อคู่บุญบารมีเสมอกัน คนมีคู่รักใคร่กลมเกลียว เกณฑ์สร้างครอบครัวหรือทรัพย์สินชิ้นใหญ่ร่วมกัน", advice: "จงก้าวเดินด้วยความมั่นใจและยุติธรรม บารมีของคุณจะคุ้มครองบริวารและนำพาความเจริญรุ่งเรืองขั้นสุดมาสู่ชีวิต" },
+            2: { name: "ขุนพลนาจา", status: "🔥 โชคดีมาก / รวดเร็วฉับไว", overview: "พลังงานความกระตือรือร้นและชัยชนะอันรวดเร็ว อุปสรรคใดๆ ที่ขวางหน้าจะถูกแผดเผาด้วยกงล้อเพลิงจนราบคาบ", careerFinance: "การงานเดินหน้าด้วยความเร็วสูง โปรเจกต์เร่งด่วนจะสำเร็จลุล่วงด้วยดี การเงินคล่องตัว เงินเข้าไวออกไวแต่มีกำไร", love: "คนโสดเจอคนถูกใจสายลุย กล้าจีบกล้าแสดงออก คนมีคู่ความรักหวือหวา สนุกสนาน มีเกณฑ์เดินทางท่องเที่ยวด้วยกัน", advice: "ความกล้าหาญและเด็ดเดี่ยวคืออาวุธของคุณ แต่อย่าใจร้อนวู่วามจนเกินไป ควรใช้สติควบคุมความเร็ว" },
+            3: { name: "มหาเทพเจียงจื่อหยา", status: "📜 ดีเยี่ยม / มั่นคงด้วยปัญญา", overview: "ความสำเร็จที่ได้มาด้วยสติปัญญา วิสัยทัศน์ และการวางแผนระยะยาว เปรียบดั่งการรอคอยเวลาที่ปลาจะติดเบ็ดอย่างแม่นยำ", careerFinance: "ได้รับความไว้วางใจให้คุมงานสำคัญหรือเป็นที่ปรึกษา การเงินมั่นคงจากน้ำพักน้ำแรงและการลงทุนที่รอบคอบ", love: "คนโสดพบคนอายุมากกว่าหรือพึ่งพาได้ คนมีคู่เป็นคู่คิดคู่ชีวิต คอยช่วยเหลือเกื้อกูลกันในยามยาก", advice: "ความสำเร็จที่ยิ่งใหญ่ต้องอาศัยเวลาและความอดทน จงเชื่อมั่นในแผนการระยะยาวที่คุณวางไว้ อย่ารีบร้อนรวบรัด" },
+            4: { name: "เจ้าแม่หนี่วา", status: "🌸 ปานกลางค่อนไปทางดี / ร่มเย็นเป็นสุข", overview: "ช่วงเวลาแห่งการเยียวยา ฟื้นฟูจิตใจ และการสร้างความสมดุล ปัญหาหนักๆ จะค่อยๆ คลายตัวลงด้วยความเมตตาและพลังแห่งการให้อภัย", careerFinance: "การงานราบรื่นไร้คลื่นลมใหญ่ ได้รับความช่วยเหลือจากเพื่อนร่วมงานหรือผู้มีอุปการคุณ การเงินเรื่อยๆ มาเรียงๆ ปลอดภัย", love: "ความสัมพันธ์อบอุ่นเข้าใจกันดี คนโสดมีเกณฑ์พบคนใจบุญ จิตใจอ่อนโยนเข้ามาดูแลหัวใจ", advice: "จงรักษาจิตใจให้ผ่องใสและรู้จักการปล่อยวาง พลังงานบวกจะดึงดูดความสุขสงบมาสู่ชีวิตของคุณเอง" },
+            5: { name: "ขุนพลอิ่นเจียว", status: "⚠️ เตือนสติ / ระมัดระวังเป็นพิเศษ", overview: "เปรียบดั่งช่วงเวลาที่ต้องเผชิญกับทางแยกสำคัญ ระวังความลังเลใจหรือคำสัญญาที่เคยให้ไว้จะย้อนกลับมาเป็นอุปสรรคผูกมัดตัวเอง", careerFinance: "ระวังปัญหาเรื่องเอกสารสัญญา ห้ามเซ็นอะไรรีบร้อนโดยไม่ตรวจสอบ การเงินสะดุดเพราะความใจใหญ่หรือการลงทุนเกินตัว", love: "คนโสดระวังเจอคนเจ้าชู้หรือคนลังเลไม่ชัดเจน คนมีคู่ต้องระวังคำพูดอารมณ์ชั่ววูบที่จะทำร้ายความรู้สึกกัน", advice: "สัจจะวาจาคือสิ่งสำคัญที่สุดในตอนนี้ จงตั้งสติให้มั่น อย่าหวั่นไหวไปกับผลประโยชน์ระยะสั้นหรือคำล่อลวง" },
+            6: { name: "เทพกิมจา", status: "🗡️ ดีมาก / เที่ยงธรรมและมั่นคง", overview: "ตัวแทนของความสุขุม รอบคอบ และการยึดมั่นในศีลธรรม การตัดสินใจในตอนนี้จะได้รับความไว้วางใจจากผู้ใหญ่", careerFinance: "งานที่ต้องใช้ระเบียบวินัย เอกสาร วิชาการ หรือการบริหารจัดการจะโดดเด่นมาก การเงินมั่นคง ไม่มีเรื่องให้เดือดร้อน", love: "คนโสดเจอคนสุภาพเรียบร้อย เป็นผู้ใหญ่กว่า คนมีคู่มีความเข้าใจกันสูง หนุนนำกันไปในทางที่ดี", advice: "ความอ่อนน้อมถ่อมตนและหลักการที่ถูกต้องคือเกราะคุ้มครองตัวคุณที่ดีที่สุดในสถานการณ์นี้" },
+            7: { name: "เทพมู่จา", status: "🌊 ดี / การปรับตัวและคลี่คลาย", overview: "เปรียบดั่งการก้าวผ่านอุปสรรคเฉพาะหน้าได้อย่างเฉียบคม มีความสามารถในการปรับตัวเข้ากับสถานการณ์ยากๆ ได้ดีเยี่ยม", careerFinance: "งานที่เคยติดขัดจะได้รับการสะสางจนสำเร็จลุล่วง การเงินเริ่มฟื้นตัว มีช่องทางทำเงินใหม่ๆ เข้ามาเสริม", love: "คนโสดมีเกณฑ์พบรักจากการเดินทางหรือการทำงานร่วมกัน คนมีคู่ช่วยกันฝ่าฟันปัญหาจนรักกันแน่นแฟ้นขึ้น", advice: "อย่าเกรงกลัวต่อความเปลี่ยนแปลง จงกล้าที่จะเผชิญหน้าและยืดหยุ่น แล้วคุณจะพบทางออกที่คาดไม่ถึง" },
+            8: { name: "อาวุธวิเศษ: เจดีย์ทองคำเจ็ดชั้น", status: "🏰 ดีมาก / การควบคุมและปกป้อง", overview: "พลังแห่งการกดข่มสิ่งชั่วร้ายและการจัดระเบียบชีวิตให้เข้าที่เข้าทาง ปัญหาที่วุ่นวายจะถูกควบคุมให้อยู่ในกรอบที่จัดการได้", careerFinance: "เหมาะกับการจัดระบบองค์กร การเคลียร์หนี้สิน หรือการบริหารจัดการทรัพยากรที่มีอยู่ให้เกิดประโยชน์สูงสุด การเงินรัดกุมดี", love: "คนมีคู่ต้องลดทิฐิและรับฟังกันให้มากขึ้น คนโสดยังไม่ใช่เวลาเปิดใจรับใครเข้ามา ควรจัดระเบียบชีวิตตัวเองก่อน", advice: "อำนาจและการควบคุมที่ดีที่สุดคือการควบคุมจิตใจตนเอง อย่าใช้อำนาจกดขี่ผู้อื่น จงใช้วิธีประนีประนอม" },
+            9: { name: "อาวุธวิเศษ: กระบี่วิเศษเฉียนคุน", status: "⚡ ยอดเยี่ยม / เฉียบคมและเด็ดขาด", overview: "พลังแห่งการตัดสินใจเด็ดขาด ตัดปัญหาเรื้อรัง หรือตัดความสัมพันธ์ที่เป็นพิษออกจากชีวิตอย่างไร้เยื่อใย", careerFinance: "การตัดสินใจครั้งสำคัญจะนำมาซึ่งความโล่งใจและการเริ่มต้นใหม่ที่ดี การเงินเคลียร์จบภาระหนี้สินได้ราบรื่น", love: "คนโสดจะได้เริ่มต้นใหม่กับคนที่ดีกว่า คนมีคู่หากมีปัญหาค้างคาจะได้พูดคุยเคลียร์ใจกันจนจบสิ้นกระบวนความ", advice: "ความลังเลใจจะทำให้เสียโอกาส จงใช้ความเด็ดขาดและเหตุผลในการตัดสินใจ แล้วผลลัพธ์ที่ดีจะตามมา" },
+            10: { name: "ขุนพลหวงเทียนฮั่ว", status: "🌟 โชคดี / พุ่งทะยานและองอาจ", overview: "พลังแห่งความห้าวหาญ การออกศึกษารบหรือการบุกเบิกทำสิ่งใหม่ๆ ด้วยความมั่นใจและสง่างาม", careerFinance: "การแข่งขัน งานประกวด หรือการเสนอโปรเจกต์ใหม่มีโอกาสชนะสูงมาก การเงินสะพัด มีโชคจากการลงทุนหรือการเดินทาง", love: "คนโสดมีเสน่ห์โดดเด่น มีคนเข้ามาสนใจจากความสามารถและความโดดเด่นของคุณ คนมีคู่พาเหรดกันรับข่าวดีเรื่องความก้าวหน้า", advice: "ความมั่นใจเป็นสิ่งที่ดี แต่อย่าประมาทคู่แข่งหรือคนรอบข้าง จงรักษาความอ่อนน้อมถ่อมตนควบคู่ไปกับความเก่งกาจ" },
+            11: { name: "ขุนพลเนี่ยหมิง", status: "🛡️ ดีปานกลาง / อดทนรอคอยเวลา", overview: "สถานการณ์ยังอยู่ในช่วงทรงตัว ต้องอาศัยความออดทนและตั้งมั่นในหน้าที่ของตนเอง อย่าเพิ่งเร่งรีบกระทำการใหญ่", careerFinance: "การงานมีความรับผิดชอบเพิ่มขึ้นแต่ผลลัพธ์ค่อยเป็นค่อยไป การเงินอยู่ในเกณฑ์พอใช้ ควบคุมรายจ่ายให้ดี", love: "คนโสดเรื่อยๆ ยังไม่เจอคนถูกใจ คนมีคู่ต้องหมั่นเติมความหวานและรับฟังกัน", advice: "ความอดทนคือตบะอันยิ่งใหญ่ จงรักษาความสงบและมั่นคงภายในใจแล้วทุกอย่างจะผ่านพ้นไปได้ด้วยดี" },
+            12: { name: "ขุนพลเติ้งจิ่วกง", status: "⚔️ ดี / ฝ่าฟันอุปสรรคด้วยความเพียร", overview: "ผ่านพ้นช่วงเวลาที่ยากลำบากมาได้ระดับหนึ่ง ด้วยความมุ่งมั่นและความไม่ย่อท้อต่อปัญหา", careerFinance: "งานที่ต้องใช้แรงกายหรือความเหน็ดเหนื่อยจะสำเร็จลุล่วง การเงินเริ่มดีขึ้นตามลำดับงาน", love: "คนโสดพบคนลุยๆ สู้ชีวิต คนมีคู่จับมือฝ่าฟันปัญหาการเงินหรือครอบครัวร่วมกัน", advice: "อย่าเพิ่งยอมแพ้แม้จะมีอุปสรรคเข้ามาท้าทาย ความเพียรพยายามจะนำพาไปสู่ความสำเร็จ" },
+            13: { name: "ขุนพลจางกุ้ย", status: "⚡ ปานกลาง / ระวังความขัดแย้ง", overview: "พึงระวังคำพูดหรือการปะทะคารมกับผู้ที่มีความคิดเห็นไม่ตรงกัน ใจเย็นไว้จะเป็นผลดีที่สุด", careerFinance: "การงานระวังความขัดแย้งกับเพื่อนร่วมงานหรือหัวหน้า การเงินมีเกณฑ์เสียเงินเพราะความจำเป็นเร่งด่วน", love: "คนโสดอยู่คนเดียวสบายใจกว่า คนมีคู่ระวังอารมณ์ร้อนใส่กัน", advice: "การถอยคนละก้าวและการพูดจาด้วยเหตุผลคือทางออกที่ดีที่สุดในยามนี้" },
+            14: { name: "ขุนพลซุนเหอ", status: "🌟 ดีมาก / โชคลาภจากความพยายาม", overview: "ความมุ่งมั่นทุ่มเทที่ผ่านมาเริ่มออกดอกออกผล สิ่งที่ลงทุนลงแรงไว้จะให้ผลตอบแทนที่น่าพอใจ", careerFinance: "งานเจริญก้าวหน้า ผู้ใหญ่เล็งเห็นผลงาน การเงินคล่องตัว มีช่องทางได้ลาภปากหรือเงินพิเศษ", love: "คนโสดมีคนเข้ามาจีบเพราะความโดดเด่นในการทำงาน คนมีคู่รักใคร่สนับสนุนกันดี", advice: "จงรักษามาตรฐานการทำงานที่ดีนี้ไว้ และอย่าลืมแบ่งปันน้ำใจให้คนรอบข้าง" },
+            15: { name: "เทพธิดาจินผิง", status: "🌸 ดี / เสน่ห์เมตตาและความราบรื่น", overview: "ได้รับความเมตตาจากผู้คนรอบข้าง เจรจาพาทีสิ่งใดก็ราบรื่นและประสบความสำเร็จได้ง่าย", careerFinance: "เหมาะกับงานด้านการเจรจา การขาย หรือการบริการ การเงินสะพัด มีรายได้เข้ามาจากหลายทาง", love: "คนโสดมีเสน่ห์แพรวพราว มีคนมารุมจีบ คนมีคู่มีความสุข บรรยากาศโรแมนติก", advice: "ใช้รอยยิ้มและวาจาที่อ่อนหวานเป็นกุญแจเปิดประตูแห่งโอกาสและความสำเร็จ" },
+            16: { name: "ขุนพลเกาจี้", status: "⚠️ ระมัดระวัง / คดีความหรือข้อพิพาท", overview: "ระวังเรื่องการเสียผลประโยชน์ หรือความขัดแย้งทางกฎหมาย สัญญาเอกสารต้องตรวจสอบให้รอบคอบ", careerFinance: "งานมีอุปสรรคจากกฎระเบียบหรือข้อตกลง การเงินมีเกณฑ์รั่วไหลหรือเสียเงินซ่อมแซม", love: "คนโสดยังไม่เหมาะกับการเริ่มต้นความสัมพันธ์ใหม่ คนมีคู่ระวังปัญหาจุกจิกกวนใจ", advice: "รอบคอบให้มากที่สุดในทุกตัวอักษรของสัญญา ละเว้นการใช้อารมณ์ตัดสินปัญหา" },
+            17: { name: "ขุนพลหลี่ชิง", status: "🌊 ดี / ความสงบสยบความเคลื่อนไหว", overview: "แม้สถานการณ์รอบตัวจะมีความวุ่นวาย แต่หากตั้งสติให้มั่นคงได้ ก็จะมองเห็นทางออกที่คาดไม่ถึง", careerFinance: "การงานค่อยๆ คลี่คลายไปในทางที่ดี การเงินทรงตัว มีเกณฑ์ได้รับเงินเก่าที่ตกค้าง", love: "คนโสดมีคนใกล้ตัวแอบส่งใจให้ คนมีคู่เข้าใจกันลึกซึ้งผ่านการพูดคุย", advice: "ความนิ่งและความสุขุมจะช่วยให้คุณเหนือกว่าคู่แข่งในทุกสถานการณ์" },
+            18: { name: "อาวุธวิเศษ: ห่วงจักรวาลเฉียนคุนซีกง", status: "🔥 ดีเยี่ยม / พลังหมุนเวียนและพลิกฟื้น", overview: "สถานการณ์ที่เคยแย่หรือติดขัดจะถูกพลิกกลับตาลปัตรให้กลายเป็นฝ่ายได้เปรียบอย่างรวดเร็ว", careerFinance: "การงานเกิดการเปลี่ยนแปลงครั้งใหญ่ไปในทางที่ดีขึ้น การเงินหมุนเวียนคล่องตัวดีมาก", love: "คนโสดมีเกณฑ์เจอรักรีเทิร์นหรือรักปิ๊งปั๊งฉับพลัน คนมีคู่กลับมารักกันแน่นแฟ้นกว่าเดิม", advice: "จงเปิดใจรับความเปลี่ยนแปลงครั้งใหม่ อย่ากลัวที่จะเริ่มต้นหมุนชีวิตไปข้างหน้า" },
+            19: { name: "อาวุธวิเศษ: ธนูวิเศษซอฮอร์", status: "🎯 ดีมาก / พุ่งตรงสู่เป้าหมาย", overview: "เป้าหมายที่ตั้งไว้ในใจอยู่ไม่ไกลเกินเอื้อมแล้ว ขอเพียงแค่เล็งให้แม่นยำและลงมือทำอย่างจริงจัง", careerFinance: "โปรเจกต์ที่วางไว้เข้าเป้าและสำเร็จตามกำหนด การเงินรับทรัพย์เต็มเม็ดเต็มหน่วย", love: "คนโสดเล็งใครไว้มีโอกาสสมหวังสูง คนมีคู่เป้าหมายอนาคตครอบครัวชัดเจนขึ้น", advice: "โฟกัสที่เป้าหมายหลักเพียงอย่างเดียว อย่าไขว้เขวไปกับสิ่งเร้ารอบข้าง" },
+            20: { name: "มหาเทพเจียงจื่อหยา (ปางโปรดสัตว์)", status: "📜 โชคดี / บารมีแผ่ไพศาล", overview: "ช่วงเวลาแห่งการสร้างบารมีและการได้รับความเคารพนับถือจากผู้คนรอบข้าง ผลงานโดดเด่นเตะตา", careerFinance: "ได้รับมอบหมายให้ดูแลงานใหญ่หรือขึ้นเป็นผู้นำ การเงินมั่นคง มีเกณฑ์ได้ทรัพย์สินมีค่า", love: "คนโสดพบคนโปรไฟล์ดีเข้ามาทำความรู้จัก คนมีคู่ครอบครัวอบอุ่นพร้อมหน้า", advice: "ความใจกว้างและการเป็นผู้ให้ที่ดีจะนำพาโชคลาภก้อนใหญ่มาสู่ตัวคุณ" },
+            21: { name: "ขุนพลหวงเถียนลู่", status: "⚡ ดี / ความกล้าหาญและความคล่องตัว", overview: "การตัดสินใจที่ฉับไวและความกล้าได้กล้าเสียจะนำมาซึ่งชัยชนะเหนืออุปสรรคเฉพาะหน้า", careerFinance: "งานแก้ปัญหาเฉพาะหน้าทำได้ดีเยี่ยม การเงินได้มาไวใช้คล่องแต่มีเงินเก็บ", love: "คนโสดรักสนุกยังไม่ผูกมัด คนมีคู่ตื่นเต้นเร้าใจ ไปเที่ยวด้วยกันบ่อย", advice: "ความเร็วและความเด็ดขาดคือหัวใจสำคัญ แต่อย่าละเลยความปลอดภัย" },
+            22: { name: "ขุนพลอิ่นหลง", status: "🌊 ปานกลาง / รอจังหวะเวลาที่เหมาะสม", overview: "ยังไม่ใช่เวลาของการเร่งรีบ จงทำหน้าที่ของตนเองไปตามปกติแล้วรอคอยจังหวะเวลาที่ฟ้าเปิด", careerFinance: "งานเรื่อยๆ ไม่มีอะไรเปลี่ยนแปลงมากนัก การเงินระวังการใช้จ่ายตามอารมณ์", love: "คนโสดอยู่คนเดียวไปก่อน คนมีคู่ต่างคนต่างยุ่งกับภารกิจส่วนตัว", advice: "ความอดทนรอคอยคือกลยุทธ์ที่ดีที่สุดในยามที่สถานการณ์ยังไม่เอื้ออำนวย" },
+            23: { name: "เทพจอมทัพโถวดงจิน", status: "🔥 โชคดี / พลังแห่งการบุกเบิก", overview: "มีไฟและพลังงานในการเริ่มต้นสิ่งใหม่ๆ ความคิดสร้างสรรค์พุ่งพล่าน ทำอะไรก็โดดเด่น", careerFinance: "การเริ่มต้นธุรกิจใหม่หรือโปรเจกต์ใหม่ไปได้สวย การเงินเริ่มขยับขยายงอกงาม", love: "คนโสดมีเกณฑ์พบรักในแวดวงการทำงาน คนมีคู่ช่วยกันทำมาหากินสร้างอนาคต", advice: "จงใช้พลังงานเชิงบวกนี้ในการขับเคลื่อนความฝันให้กลายเป็นความจริง" },
+            24: { name: "เทพธิดาซานเซียว (สามพี่น้อง)", status: "🌸 ดีมาก / ความสามัคคีและความสำเร็จร่วมกัน", overview: "พลังแห่งความร่วมมือและการสนับสนุนจากทีมเวิร์ค ทำงานเป็นกลุ่มจะประสบความสำเร็จสูงมาก", careerFinance: "งานพาร์ทเนอร์ งานทีม โดดเด่นเป็นพิเศษ การเงินรับทรัพย์จากผลงานร่วมกัน", love: "คนโสดเจอคนแนะนำให้รู้จักเพื่อนฝูง คนมีคู่ช่วยเหลือเกื้อกูลกันดีเยี่ยม", advice: "ความสามัคคีคือพลัง การเปิดใจรับฟังความคิดเห็นของคนรอบข้างจะพาไปสู่ความสำเร็จ" },
+            25: { name: "ขุนพลเหวินจ้ง", status: "📜 ดีเยี่ยม / ปัญญาและความยุติธรรม", overview: "การใช้เหตุผล สติปัญญา และหลักการที่ถูกต้อง จะช่วยแก้ไขปัญหาซับซ้อนให้ลุล่วงไปได้ด้วยดี", careerFinance: "งานบริหาร วิชาการ หรือการตัดสินใจเรื่องสำคัญประสบผลสำเร็จสูง การเงินมั่นคง", love: "คนโสดพบคนฉลาดมีความเป็นผู้ใหญ่สูง คนมีคู่ปรึกษาหารือกันได้ทุกเรื่อง", advice: "ยึดมั่นในความถูกต้องและยุติธรรม แล้วคุณจะเป็นที่พึ่งพาของผู้อื่นได้อย่างแท้จริง" },
+            26: { name: "ขุนพลเติ้งฉานอี้", status: "⚡ ดี / ความพลิกแพลงและยืดหยุ่น", overview: "ความสามารถในการปรับตัวเข้ากับสถานการณ์และเล่ห์เหลี่ยมเฉพาะหน้าช่วยให้รอดพ้นวิกฤต", careerFinance: "งานแก้ไขสถานการณ์เฉพาะหน้า การเจรจาต่อรองประสบผลดี การเงินหมุนทันใช้", love: "คนโสดเจอคนแพรวพราวเจ้าเสน่ห์ คนมีคู่มีเรื่องให้ปรับความเข้าใจกันบ้าง", advice: "ความยืดหยุ่นคือเกราะคุ้มตัว อย่าตึงจนเกินไปและอย่าหย่อนจนเกินงาม" },
+            27: { name: "ขุนพลหลี่จิ้ง (ท้าวเวสสุวรรณแห่งห้องสิน)", status: "🏰 ดีที่สุด / อำนาจ บารมี การคุ้มครอง", overview: "ได้รับการคุ้มครองจากสิ่งศักดิ์สิทธิ์และผู้มีอำนาจ ปัญหาและอุปสรรคใดๆ จะมลายหายสิ้น", careerFinance: "ก้าวหน้าในหน้าที่การงาน มีอำนาจสั่งการ ได้รับการยำเกรงและการยอมรับ การเงินมั่นคงร่ำรวย", love: "คนโสดพบคนโปรไฟล์สูงพึ่งพาได้ คนมีคู่ครอบครัวมั่นคงร่มเย็นเป็นสุข", advice: "จงใช้อำนาจที่มีในการปกป้องและเกื้อหนุนผู้อื่น คุณธรรมจะค้ำจุนความสำเร็จ" },
+            28: { name: "ขุนพลเนี่ยจา", status: "🔥 โชคดี / พลังฮึกเหิมและชัยชนะ", overview: "ความมุ่งมั่นที่ไม่ยอมแพ้ต่อโชคชะตา จะนำพาให้คุณทะยานผ่านขีดจำกัดเดิมๆ ไปได้อย่างงดงาม", careerFinance: "การแข่งขันหรือการสอบแข่งขันมีเกณฑ์ชนะสูงมาก การเงินสะพัด มีโชคลาภจากการเสี่ยง", love: "คนโสดเนื้อหอม มีคนเข้ามาขายขนมจีบไม่ขาดสาย คนมีคู่รักกันเหนียวแน่น", advice: "ความฮึกเหิมเป็นสิ่งที่ดี แต่ต้องมีสติกำกับเพื่อไม่ให้ประมาทคู่ต่อสู้" },
+            29: { name: "ขุนพลหวงเฟยหู่", status: "🌟 ดีมาก / การกลับคืนสู่ความยิ่งใหญ่", overview: "ผ่านพ้นช่วงเวลาที่ถูกกดขี่หรืออึดอัด มาสู่ช่วงเวลาแห่งการประกาศศักดาและความยุติธรรม", careerFinance: "มีการเปลี่ยนแปลงโยกย้ายไปสู่ตำแหน่งที่ดีขึ้นและมีเกียรติกว่าเดิม การเงินฟื้นตัวเด่นชัด", love: "คนโสดเจอคนเคยรู้จักกลับมาสานสัมพันธ์ คนมีคู่ผ่านพ้นวิกฤตรักร่วมกันได้", advice: "ความอดทนต่อความอยุติธรรมที่ผ่านมา ได้เวลาออกดอกออกผลเป็นความสุขความสำเร็จ" },
+            30: { name: "เทพจอมทัพเซินกงเป้า", status: "⚠️ เตือนสติ / ระวังคำพูดและการชี้นำ", overview: "ระวังคำพูด คำสัญญา หรือการชักจูงจากคนที่ไม่หวังดี อาจทำให้หลงทางและเสียชื่อเสียงได้", careerFinance: "งานระวังความผิดพลาดจากการสื่อสาร การเงินระวังคนมาหยิบยืมแล้วสูญหาย", love: "คนโสดระวังเจอคนเจ้าเล่ห์เข้ามาหลอกให้ตายใจ คนมีคู่ระวังมือที่สามยุแยงตะแคงรั่ว", advice: "จงใช้วิจารณญาณให้รอบคอบ อย่าเพิ่งเชื่อใครง่ายๆ เพียงเพราะคำหวานหู" },
+            31: { name: "ขุนพลหม่าซื่ออิง", status: "🛡️ ดี / ความมั่นคงจากฐานราก", overview: "การสร้างรากฐานชีวิตหรือการงานให้มั่นคงทีละก้าว จะนำมาซึ่งความยั่งยืนในระยะยาว", careerFinance: "งานระบบ งานโครงสร้าง งานเบื้องหลังมีความสำเร็จดี การเงินเก็บออมเก่ง มั่งคั่ง", love: "คนโสดพบคนรักเรียบง่ายแต่มั่นคง คนมีคู่สร้างเนื้อสร้างตัว สร้างบ้านซื้อเรือนหอ", advice: "ความรีบร้อนอาจทำให้สะดุด จงสร้างทีละขั้นอย่างมั่นคงแล้วจะปลอดภัยที่สุด" },
+            32: { name: "ขุนพลจางซาน", status: "🌊 ปานกลาง / การเดินทางโยกย้าย", overview: "มีเกณฑ์การเดินทาง โยกย้าย หรือเปลี่ยนแปลงสภาพแวดล้อมรอบตัว ชั่วคราวหรือถาวร", careerFinance: "งานเดินทางติดต่อต่างถิ่นสำเร็จดี การเงินหมุนเวียนตามสภาพแวดล้อม", love: "คนโสดพบรักจากการเดินทางไกล คนมีคู่บางคู่อาจต้องห่างกันไกลชั่วคราว", advice: "การปรับตัวให้เข้ากับสิ่งแวดล้อมใหม่ๆ คือกุญแจสำคัญสู่ความราบรื่น" },
+            33: { name: "เทพธิดาหลงจี้", status: "🌸 ดีเยี่ยม / ความสงบและปัญญาญาณ", overview: "จิตใจสงบผ่อนคลาย ปัญญาญาณเกิด มองเห็นทางแก้ปัญหาชีวิตได้อย่างทะลุปรุโปร่ง", careerFinance: "งานที่ใช้ความคิดสร้างสรรค์ ไอเดียเจิดจรัส การเงินราบรื่น ไร้กังวล", love: "คนโสดพบคนจิตใจดีมีเมตตาเข้ามาเติมเต็ม คนมีคู่มีความเข้าใจและให้อภัยกันสูง", advice: "ใช้เวลาอยู่กับความสงบภายใน แล้วคุณจะได้คำตอบที่ดีที่สุดสำหรับทุกปัญหา" },
+            34: { name: "ขุนพลหยางเหริน", status: "⚡ ดีมาก / วิสัยทัศน์และการมองการณ์ไกล", overview: "ตาสว่างมองเห็นลู่ทางและโอกาสที่คนอื่นมองไม่เห็น สามารถวางแผนอนาคตได้อย่างแม่นยำ", careerFinance: "การลงทุนหรือการวางแผนธุรกิจระยะยาวให้ผลตอบแทนสูง การเงินคล่องตัว", love: "คนโสดเจอคนมองการณ์ไกล วางอนาคตร่วมกันได้ คนมีคู่ช่วยกันคิดสร้างสรรค์สิ่งใหม่", advice: "ความสามารถในการมองไกลกว่าคนอื่นคือแต้มต่อสำคัญ จงใช้มันให้เต็มที่" },
+            35: { name: "ขุนพลถู่ซิงซุน", status: "🔥 โชคดี / ความรวดเร็วและลับเฉพาะ", overview: "มีความสามารถพิเศษในการเข้าถึงข้อมูลหรือช่องทางลับ ที่ทำให้ได้เปรียบผู้อื่นอย่างไม่คาดคิด", careerFinance: "งานเจรจาใต้โต๊ะ งานดีลลับ หรือการแก้ปัญหาเฉพาะหน้าสำเร็จลุล่วง การเงินได้ลาภฟลุค", love: "คนโสดรักซ่อนเร้นหรือคนคุยแบบลับๆ คนมีคู่มีเซอร์ไพรส์เล็กๆ น้อยๆ", advice: "ความฉลาดแกมโกงใช้ได้บางสถานการณ์ แต่อย่าลืมรักษาความสุจริตใจเป็นหลัก" },
+            36: { name: "ขุนพลเติ้งฉานหัว", status: "🌟 ดี / ความสำเร็จขั้นต้น", overview: "ก้าวแรกของความสำเร็จเริ่มปรากฏชัดเจน มีกำลังใจและแรงผลักดันในการเดินหน้าต่อ", careerFinance: "งานเริ่มเห็นผลกำไรหรือสัญญาณที่ดี การเงินมีเงินเก็บเพิ่มขึ้นเล็กน้อย", love: "คนโสดเริ่มเปิดใจเรียนรู้กันทีละนิด คนมีคู่ปรับจังหวะชีวิตคู่ให้ลงตัวขึ้น", advice: "จงภูมิใจในก้าวเล็กๆ นี้ เพราะมันคือบันไดสู่ความสำเร็จที่ยิ่งใหญ่ในอนาคต" },
+            37: { name: "อาวุธวิเศษ: กระบี่หยกเขียว", status: "🗡️ ดีมาก / ความเฉียบคมและมีเกียรติ", overview: "เกียรติยศและศักดิ์ศรีมาพร้อมกับความสามารถในการตัดสินใจที่เฉียบขาดและถูกต้อง", careerFinance: "งานที่ต้องรักษาหน้าตา ชื่อเสียง และเกียรติยศจะโดดเด่นมาก การเงินมั่นคงมีหน้ามีตา", love: "คนโสดเจอคนมีฐานะหรือเกียรติยศเสมอกัน คนมีคู่ให้เกียรติและเคารพกันสูง", advice: "ศักดิ์ศรีและคำพูดคือสิ่งมีค่า รักษาคำพูดและเกียรติยศยิ่งชีพ" },
+            38: { name: "อาวุธวิเศษ: พัดใบลานวิเศษ", status: "🌊 ดี / การปัดเป่าอุปสรรค", overview: "ลมวิเศษพัดพาความทุกข์ยาก ความอึดอัด และปัญหาทั้งปวงให้ปลิวหายไปจากชีวิต", careerFinance: "ปัญหาติดขัดคลี่คลายลงอย่างรวดเร็ว การเงินสะพัด มีเงินเข้ามาเติมเต็มส่วนที่ขาด", love: "คนโสดความอึดอัดใจคลี่คลาย เริ่มมีคนเข้ามาคุยคลายเหงา คนมีคู่คืนดีกัน", advice: "ปล่อยวางเรื่องแย่ๆ ไว้เบื้องหลัง แล้วลมหายใจแห่งความสุขจะกลับคืนมา" },
+            39: { name: "มหาเทพปóเซียน", status: "📜 ดีที่สุด / ปัญญาญาณแห่งเซียน", overview: "ได้รับคำชี้แนะจากผู้มีภูมิรู้หรือสิ่งศักดิ์สิทธิ์ ชีวิตเดินมาถูกทางและมีทางออกเสมอ", careerFinance: "งานปรึกษา งานวางแผน งานวิชาการ ประสบความสำเร็จขั้นสูงสุด การเงินมั่งคั่งมั่นคง", love: "คนโสดพบคนอายุมากกว่าหรือเป็นผู้ให้คำปรึกษาที่ดี คนมีคู่เป็นกัลยาណมิตร", advice: "หมั่นศึกษาหาความรู้และทำบุญสร้างกุศล บารมีจะคุ้มครองตัว" },
+            40: { name: "ขุนพลกว่างเฉิงจื่อ", status: "🌟 โชคดี / ความหนักแน่นและมั่นคง", overview: "ความเก๋าเกม ประสบการณ์ และความนิ่งสงบ จะช่วยเอาชนะปัญหาใหญ่ได้อย่างราบคาบ", careerFinance: "ได้รับความไว้วางใจจากผู้ใหญ่ให้คุมโปรเจกต์ใหญ่ การเงินมั่นคงจากฐานะเดิม", love: "คนโสดเจอคนนิ่งๆ สุขุม น่าค้นหา คนมีคู่รักกันมั่นคงยาวนาน", advice: "ประสบการณ์คือกูรูที่ดีที่สุด เชื่อมั่นในสัญชาตญาณและบทเรียนที่ผ่านมา" },
+            41: { name: "ขุนพลชื่อจิงจื่อ", status: "🔥 ดี / พลังแห่งการเรียนรู้", overview: "ช่วงเวลาแห่งการพัฒนาตนเองและการเรียนรู้ทักษะใหม่ๆ ที่จะนำไปสู่ความก้าวหน้าในอนาคต", careerFinance: "งานอบรม ศึกษาต่อ หรือเรียนรู้ระบบงานใหม่ได้ผลดี การเงินหมุนเวียนปกติ", love: "คนโสดพบรักในสถานศึกษาหรือคอร์สเรียน คนมีคู่ส่งเสริมกันเรื่องการเรียนรู้", advice: "การลงทุนกับความรู้ในตัวเองไม่มีวันขาดทุน จงเปิดใจเรียนรู้สิ่งใหม่เสมอ" },
+            42: { name: "ขุนพลหลิงเป่าต้าฝา", status: "🌸 ปานกลาง / ความเรียบง่ายและสงบ", overview: "ความสุขสงบเรียบง่ายในชีวิตประจำวัน ไม่มีเรื่องให้ตื่นเต้นหวือหวาแต่ปลอดภัยดี", careerFinance: "การงานเรื่อยๆ สบายๆ ไม่กดดัน การเงินพอมีพอกินไม่ขัดสน", love: "คนโสดอยู่คนเดียวอย่างมีความสุข คนมีคู่ใช้ชีวิตเรียบง่ายเข้าใจกัน", advice: "ความสุขไม่ได้อยู่ที่ความหวือหวา แต่อยู่ที่ความสงบทางใจในทุกๆ วัน" },
+            43: { name: "ขุนพลอี้ติ่งเจิน", status: "⚡ ดี / ความเด็ดเดี่ยวและการเปลี่ยนแปลง", overview: "ถึงเวลาต้องตัดสินใจครั้งสำคัญเพื่อสลัดความจำเจและก้าวไปสู่จุดที่ดีกว่าเดิม", careerFinance: "มีโอกาสเปลี่ยนงาน ย้ายสายงาน หรือปรับโครงสร้างธุรกิจ การเงินดีขึ้นหลังปรับเปลี่ยน", love: "คนโสดตัดใจจากคนเก่าเพื่อเจอคนใหม่ที่ดีกว่า คนมีคู่ปรับความเข้าใจครั้งใหญ่", advice: "ความกล้าที่จะเปลี่ยนแปลงจะนำมาซึ่งโอกาสใหม่ๆ ที่คุ้มค่าเสมอ" },
+            44: { name: "ขุนพลหวงหลงเจินเหริน", status: "🐉 ยอดเยี่ยม / มังกรทองผงาด", overview: "พลังแห่งธาตุทองและมังกร นำพาความมั่งคั่ง โชคลาภ และความเจริญรุ่งเรืองมาสู่ชีวิต", careerFinance: "การงานทะยานสู่จุดสูงสุด มีชื่อเสียงและผลกำไรก้อนโต การเงินไหลมาเทมาไม่ขาดสาย", love: "คนโสดพบเนื้อคู่ฐานะดีเพียบพร้อม คนมีคู่ชีวิตสุขสบายมั่งคั่งพร้อมหน้า", advice: "จงใช้ความมั่งคั่งนี้สร้างคุณประโยชน์และแบ่งปัน แล้วความสุขจะยั่งยืน" },
+            45: { name: "ขุนพลฉือหางเต้าเหริน (เจ้าแม่กวนอิมปางโบราณ)", status: "🌸 ดีที่สุด / เมตตาธรรมค้ำจุน", overview: "พลังแห่งความเมตตาและการเยียวยาจิตใจ ปัดเป่าทุกข์โศกโรคภัยให้มลายสิ้น", careerFinance: "งานช่วยเหลือ งานบริการ งานสาธารณสุขโดดเด่น การเงินราบรื่นมีโชคลาภจากการทำบุญ", love: "คนโสดเจอคนจิตใจดีมีเมตตา คนมีคู่ดูแลเอาใจใส่กันเป็นอย่างดี", advice: "ตั้งมั่นอยู่ในศีลธรรมและความเมตตา จะแคล้วคลาดปลอดภัยจากอันตรายทั้งปวง" },
+            46: { name: "ขุนพลผูเสียนเจินเหริน", status: "📜 ดี / ปัญญาและสติในการดำเนินชีวิต", overview: "การใช้ธรรมะและสติปัญญาในการพิจารณาปัญหา ทำให้มองเห็นความจริงและไม่หลงทาง", careerFinance: "งานวางแผน งานกลยุทธ์ประสบผลสำเร็จดี การเงินมั่นคงจากสติในการใช้จ่าย", love: "คนโสดพบคนพูดคุยถูกคอแนวคิดตรงกัน คนมีคู่เป็นที่ปรึกษาที่ดีต่อกัน", advice: "มีสติในทุกลมหายใจ แล้วคุณจะรอดพ้นจากทุกวิกฤตการณ์" },
+            47: { name: "ขุนพลจวี้หลิวซุน", status: "🌊 ดี / ความไหลลื่นเหมือนสายน้ำ", overview: "อุปสรรคที่เคยติดขัดจะถูกกระแสน้ำพัดพาให้ไหลลื่นไปได้อย่างง่ายดาย", careerFinance: "งานติดต่อประสานงานและการค้าขายคล่องตัวมาก การเงินไหลเข้าไม่ขาดสาย", love: "คนโสดเจอคนพูดจาดีเสน่ห์แรง คนมีคู่ความสัมพันธ์ราบรื่นไม่มีสะดุด", advice: "ทำตัวให้ยืดหยุ่นและลื่นไหลไปตามสถานการณ์ แล้วความสำเร็จจะมาเยือน" },
+            48: { name: "ขุนพลเต้าหรงจุน", status: "🛡️ ดี / ความสงบเสงี่ยมเจียมตัว", overview: "การไม่อวดตัวและการทำงานเงียบๆ แต่มีคุณภาพ จะสร้างความน่าเชื่อถือในระยะยาว", careerFinance: "งานเบื้องหลัง งานวิจัย งานฝีมือสำเร็จดี การเงินเก็บเงียบๆ แต่มั่งคั่ง", love: "คนโสดพบรักแบบเงียบๆ ไม่หวือหวา คนมีคู่รักกันเรียบง่ายแต่มั่นคง", advice: "คมในฝักย่อมดีที่สุดในยามนี้ อย่าเพิ่งแสดงตัวโดดเด่นจนเกินไป" },
+            49: { name: "ขุนพลชิงจิงจื่อ", status: "🌿 ดี / ความบริสุทธิ์และจิตใจสงบ", overview: "จิตใจปลอดโปร่งแจ่มใส ปราศจากความโลภ โกรธ หลง นำมาซึ่งความสุขที่แท้จริง", careerFinance: "งานสุจริต งานโปร่งใสตรวจสอบได้รุ่งเรือง การเงินพอเพียงและมีความสุข", love: "คนโสดเจอคนรักความเรียบง่ายบริสุทธิ์ใจ คนมีคู่รักกันด้วยความเข้าใจ", advice: "ความสุขที่แท้จริงเกิดจากความเรียบง่ายและจิตใจที่สะอาดบริสุทธิ์" },
+            50: { name: "อาวุธวิเศษ: กระบี่อัสนีบาต", status: "⚡ ยอดเยี่ยม / พลังสายฟ้าฟาดฟันอุปสรรค", overview: "พลังงานเด็ดขาดรวดเร็วราวกับสายฟ้าแลบ จัดการปัญหาเรื้อรังให้จบสิ้นในคราวเดียว", careerFinance: "ตัดสินใจเฉียบขาด โปรเจกต์จบไวได้กำไรก้อนโต การเงินสะพัดรวดเร็ว", love: "คนโสดปิ๊งรักรวดเร็วแบบสายฟ้าแลบ คนมีคู่เคลียร์ปัญหาคาราคาซังจบลงด้วยดี", advice: "ความเด็ดขาดและรวดเร็วคืออาวุธสำคัญ แต่อย่าใช้อารมณ์รุนแรงเกินเหตุ" },
+            51: { name: "อาวุธวิเศษ: ลูกแก้วมณีรัตนะ", status: "🌟 ดีที่สุด / แก้วสารพัดนึก", overview: "สิ่งศักดิ์สิทธิ์ดลบันดาลให้คำอธิษฐานและสิ่งที่ปรารถนาไว้กลายเป็นจริงดังใจนึก", careerFinance: "การงานสมปรารถนาทุกประการ มีโชคลาภก้อนใหญ่เข้ามาพลิกชีวิต การเงินมั่งคั่ง", love: "คนโสดพบเนื้อคู่ที่ตามหามานาน คนมีคู่สมหวังเรื่องการมีบุตรหรือสร้างบ้าน", advice: "หมั่นทำความดีและอธิษฐานจิต สิ่งศักดิ์สิทธิ์จะคุ้มครองและอำนวยพร" },
+            52: { name: "จอมมารโซวเฮียน (เทพผู้พลิกแผ่นดิน)", status: "🔥 เตือนสติ / ความเปลี่ยนแปลงครั้งใหญ่", overview: "สถานการณ์รอบตัวอาจมีความผันผวนรุนแรง ต้องเตรียมรับมือกับการเปลี่ยนแปลงครั้งใหญ่", careerFinance: "ระวังการเปลี่ยนแปลงโยกย้ายกระทันหัน การเงินอย่าเพิ่งลงทุนเสี่ยงสูง", love: "คนโสดระวังเจอคนเข้ามาพลิกชีวิตทั้งดีและร้าย คนมีคู่ต้องประคับประคองกันให้ดี", advice: "ตั้งสติให้มั่น ดั่งขุนเขาที่แม้ลมพายุจะโหมกระหน่ำก็ไม่หวั่นไหว" },
+            53: { name: "ขุนพลเกาหมิง", status: "👁️ ดีมาก / หูตากว้างไกล รู้เท่าทัน", overview: "มีความสามารถพิเศษในการรับรู้ข้อมูลข่าวสาร ทำให้รู้เท่าทันสถานการณ์และเกมของผู้อื่น", careerFinance: "งานเจรจา การแข่งขัน ข้อมูลลับ คุณกุมความได้เปรียบ การเงินดีเยี่ยม", love: "คนโสดรู้ทันคนเจ้าชู้ ไม่ตกเป็นเหยื่อใคร คนมีคู่รู้ใจกันทุกกระบวนความ", advice: "ใช้หูตาที่กว้างไกลนี้ในการสร้างโอกาสและความปลอดภัยให้กับตัวเอง" },
+            54: { name: "ขุนพลเกาเจวี๋ย", status: "👂 ดีมาก / ไหวพริบและสัญชาตญาณแม่นยำ", overview: "สัญชาตญาณและลางสังหรณ์แม่นยำเป็นพิเศษ ช่วยให้หลบเลี่ยงอันตรายและคว้าโอกาสทองได้ทัน", careerFinance: "การตัดสินใจทางธุรกิจอาศัยลางสังหรณ์จะให้ผลลัพธ์ที่ดี การเงินได้ลาภลอย", love: "คนโสดรู้สึกได้ว่าใครจริงใจไม่จริงใจ คนมีคู่เซ้นส์แรงเข้าใจความรู้สึกอีกฝ่าย", advice: "เชื่อมั่นในสัญชาตญาณภายในของตนเอง แล้วจะไม่ตัดสินใจผิดพลาด" },
+            55: { name: "ขุนพลหยวนหง", status: "🐒 ยอดเยี่ยม / ความฉลาดหลักแหลมและคล่องตัว", overview: "ตัวแทนแห่งความฉลาด ปฏิภาณไหวพริบ และความสามารถรอบด้าน เอาตัวรอดได้ทุกสถานการณ์", careerFinance: "การงานโดดเด่นสุดขีด แก้ปัญหาซับซ้อนเก่งกาจ การเงินคล่องตัวหาเงินเก่ง", love: "คนโสดเจอคนเจ้าเสน่ห์ฉลาดทันกัน คนมีคู่สนุกสนานเฮฮาเข้าใจกันดี", advice: "ความฉลาดคือสมบัติอันล้ำค่า แต่อย่าใช้ในทางที่เอาเปรียบผู้อื่น" },
+            56: { name: "ขุนพลไต้หลี่", status: "🦅 ดี / มุมมองกว้างไกลดั่งพญาอินทรี", overview: "มองเห็นภาพรวมของปัญหาทั้งหมดจากมุมสูง สามารถวางกลยุทธ์ได้อย่างเฉียบคม", careerFinance: "งานวางแผนระดับบริหาร งานนโยบายสำเร็จยอดเยี่ยม การเงินมั่นคงเติบโต", love: "คนโสดมองหาคนที่มีเป้าหมายชีวิตชัดเจน คนมีคู่มองอนาคตร่วมกันไกล", advice: "อย่าจมอยู่กับรายละเอียดเล็กๆ น้อยๆ จงมองภาพรวมให้กว้างไกลเสมอ" },
+            57: { name: "ขุนพลจูจื่อเจิน", status: "🐗 ดี / พลังความอึดและลุยไม่ถอย", overview: "ความอึด ถึก ทน และความมุ่งมั่นทุ่มเท จะช่วยทะลวงกำแพงอุปสรรคให้พังทลายลง", careerFinance: "งานหนักแค่ไหนก็เอาอยู่ สำเร็จลุล่วงด้วยหยาดเหงื่อแรงกาย การเงินมั่นคง", love: "คนโสดเจอคนรักจริงหวังแต่งสายทุ่มเท คนมีคู่รักกันยาวนานผ่านทุกข์สุข", advice: "ความพยายามอยู่ที่ไหน ความสำเร็จอยู่ที่นั่น จงลุยต่อไปอย่าได้ถอย" },
+            58: { name: "ขุนพลหยางเสียน", status: "🐐 ดี / ความนุ่มนวลแต่หนักแน่น", overview: "ใช้ความอ่อนโยนและนุ่มนวลเข้าสยบความแข็งกร้าว ได้รับความเอ็นดูจากผู้ใหญ่", careerFinance: "งานบริการ งานประสานงานราบรื่นไร้รอยต่อ การเงินเรื่อยๆ มั่นคงปลอดภัย", love: "คนโสดพบคนอ่อนโยนจิตใจดีเข้ามาดูแล คนมีคู่พูดจาไพเราะเอาใจใส่กันดี", advice: "ไม้อ่อนยوزไม้แข็งได้ดีที่สุดในสถานการณ์นี้ จงใช้วาจาและท่าทีที่อ่อนน้อม" },
+            59: { name: "ขุนพลไท่เต่า", status: "🐕 ดี / ความซื่อสัตย์และภักดี", overview: "ความซื่อสัตย์สุจริตและความจริงใจ จะเป็นเกราะคุ้มครองและดึงดูดกัลยาណมิตรที่ดีเข้ามา", careerFinance: "ได้รับความไว้วางใจสูงสุดในหน้าที่การงาน การเงินมั่นคงจากความซื่อตรง", love: "คนโสดเจอคนซื่อสัตย์รักเดียวใจเดียว คนมีคู่รักและซื่อสัตย์ต่อกันยิ่งชีพ", advice: "ความซื่อสัตย์คือรากฐานของความสำเร็จที่ยั่งยืนที่สุดในชีวิต" },
+            60: { name: "ขุนพลอู๋หลง", status: "🐅 ดี / ความองอาจและทรงพลัง", overview: "ความกล้าหาญและพลังอำนาจในตัวถูกปลุกขึ้นมา ทำให้สามารถยืนหยัดปกป้องตนเองและผู้อื่นได้", careerFinance: "งานบริหารจัดการ งานปกครองลูกน้องโดดเด่น การเงินสะพัดมั่นคง", love: "คนโสดเจอคนพึ่งพาได้ปกป้องคุ้มครองเราได้ คนมีคู่เป็นเสาหลักให้ครอบครัว", advice: "ความองอาจต้องมาพร้อมกับความยุติธรรม จึงจะสง่างามและมีเกียรติ" },
+            61: { name: "ขุนพลไต้หลวน", status: "🐓 ดี / การเริ่มต้นเช้าวันใหม่ที่ดี", overview: "เปรียบดั่งเสียงไก่ขันยามรุ่งอรุณ ความมืดมิดผ่านพ้นไป แสงสว่างแห่งความหวังมาเยือนแล้ว", careerFinance: "เริ่มต้นวันใหม่หรือโปรเจกต์ใหม่ราบรื่นสดใส การเงินมีแนวทางขยับขยายเพิ่มขึ้น", love: "คนโสดพบรักยามเช้าหรือการเริ่มต้นใหม่ที่ดี คนมีคู่เริ่มต้นวางแผนอนาคตร่วมกัน", advice: "ตื่นตัวและกระตือรือร้นรับวันใหม่ โอกาสดีๆ รออยู่ตรงหน้าแล้ว" },
+            62: { name: "ขุนพลหงจิ้น", status: "🌊 ดี / ความลึกลับและมีเสน่ห์", overview: "มีความสามารถพิเศษหรือเสน่ห์เฉพาะตัวที่ดึงดูดความสนใจจากผู้คนรอบข้าง ทำงานสำเร็จด้วยชั้นเชิง", careerFinance: "งานปิดการขาย งานดีลพิเศษประสบความสำเร็จ การเงินดีมีรายได้เสริม", love: "คนโสดเจอคนมีเสน่ห์น่าค้นหาเข้ามาพัวพัน คนมีคู่มีความรักหวือหวาสด 100%", advice: "ใช้เสน่ห์และความสามารถเฉพาะตัวให้เป็นประโยชน์ แล้วจะไร้เทียมทาน" },
+            63: { name: "เทพธิดาหลงจีว์ (มเหสีหงจิ้น)", status: "🌸 ดีมาก / ความสุขสมบูรณ์ในเรือนหอ", overview: "ช่วงเวลาแห่งความสุขความรื่นรมย์ในครอบครัว ความรักสุกงอม ความสัมพันธ์ราบรื่นอบอุ่น", careerFinance: "งานราบรื่นไร้อุปสรรค ผลงานเข้าตาเจ้านาย การเงินมั่งคั่งมีความสุข", love: "คนโสดมีเกณฑ์แต่งงานหรือตกลงปลงใจ คนมีคู่ครองคู่กันอย่างมีความสุข", advice: "จงทะนุถนอมความสุขรอบตัวในปัจจุบันให้ดีที่สุด แล้วชีวิตจะเปี่ยมด้วยรอยยิ้ม" },
+            64: { name: "ขุนพลโจวซิ่น", status: "⚠️ ระมัดระวัง / ความดื้อรั้นหัวดาน", overview: "ระวังปัญหาที่เกิดจากความดื้อรั้น ไม่ยอมรับฟังคำเตือนของผู้อื่น อาจนำพาความเดือดร้อนมาให้", careerFinance: "งานติดขัดเพราะความหัวรั้นไม่ยอมปรับตัว การเงินระวังการเสียเงินเพราะความอวดดี", love: "คนโสดระวังเจอคนดื้อรั้นเอาแต่ใจ คนมีคู่ต้องลดทิฐิและรับฟังกันให้มากกว่าเดิม", advice: "เปิดใจรับฟังคำแนะนำจากคนรอบข้างบ้าง ความอ่อนน้อมจะช่วยแก้ปัญหาได้" },
+            65: { name: "ขุนพลหลี่ฉี", status: "🔥 เตือนสติ / อารมณ์ร้อนวู่วาม", overview: "อารมณ์ร้อนและคำพูดที่รุนแรงชั่ววูบ อาจทำลายความสัมพันธ์และโอกาสดีๆ ที่สร้างมา", careerFinance: "งานระวังการทะเลาะเบาะแว้งในที่ทำงาน การเงินอย่าใช้เงินประชดอารมณ์", love: "คนโสดระวังเจอคนอารมณ์ร้อน คนมีคู่ห้ามใช้อารมณ์ตัดสินปัญหาเด็ดขาด", advice: "นับ 1 ถึง 10 ให้ช้าลงก่อนพูดหรือทำอะไร ความใจเย็นคือเกราะป้องกันตัวที่ดี" },
+            66: { name: "ขุนพลอวี๋ฮ화", status: "⚡ ปานกลาง / ระวังกลอุบาย", overview: "ต้องระมัดระวังเล่ห์เหลี่ยมหรือกลอุบายจากผู้ไม่หวังดี อย่าไว้ใจทางอย่าวางใจคนง่ายเกินไป", careerFinance: "งานระวังคนแทงข้างหลังหรือขโมยผลงาน การเงินระวังถูกหลอกลวงลงทุน", love: "คนโสดอย่าเพิ่งหลงเชื่อคารมใครง่ายๆ คนมีคู่ระวังมือที่สามเข้ามาป่วน", advice: "รอบคอบและระมัดระวังตัวแจในทุกสถานการณ์ ความไม่ประมาทคือความปลอดภัย" },
+            67: { name: "ขุนพลหันเจิน", status: "🌊 ดี / การปรับตัวสู่ความสงบ", overview: "ผ่านพ้นช่วงเวลาพายุโหมกระหน่ำ กลับเข้าสู่สภาวะปกติสุขและความสงบเรียบร้อย", careerFinance: "งานที่ยุ่งเหยิงเริ่มเข้ารูปเข้ารอย การเงินเริ่มฟื้นตัวและนิ่งขึ้น", love: "คนโสดใจสงบลงหลังจากผิดหวัง คนมีคู่ปรับความเข้าใจและคืนดีกัน", advice: "ความสงบเยียวยาได้ทุกสิ่ง ให้เวลาตัวเองได้พักผ่อนและฟื้นฟูพลังงาน" },
+            68: { name: "ขุนพลอ๋องมู่", status: "📜 ดี / ความยุติธรรมและความเรียบร้อย", overview: "บ้านเมืองและชีวิตเข้าสู่สภาวะยุติธรรม กฎเกณฑ์ระเบียบวินัยนำพาความสงบสุขมาให้", careerFinance: "งานระบบระเบียบ งานกฎหมาย งานราชการรุ่งเรือง การเงินมั่นคงปลอดภัย", love: "คนโสดพบคนรักอยู่ในกรอบระเบียบเรียบร้อย คนมีคู่ช่วยกันดูแลครอบครัวดี", advice: "ปฏิบัติตามกฎกติกาสังคมอย่างเคร่งครัด แล้วชีวิตจะราบรื่นไม่มีสะดุด" },
+            69: { name: "มหาเทพไท่ซั่งเหล่าจวิน (เทพสูงสุดแห่งห้องสิน)", status: "🌟 มงคลสูงสุด / ปัญญาญาณแห่งเต๋า", overview: "ได้รับพรจากมหาเทพผู้สูงสุด ชีวิตดำเนินไปตามวิถีแห่งเต๋า สอดคล้องกับธรรมชาติอย่างไร้รอยต่อ", careerFinance: "การงานประสบความสำเร็จยิ่งใหญ่เหนือความคาดหมาย การเงินไหลมาเทมายั่งยืน", love: "คนโสดพบเนื้อคู่บุญบารมีสูงส่ง คนมีคู่รักใคร่กลมเกลียวเป็นเนื้อเดียวกัน", advice: "ปล่อยวาง ปล่อยให้ทุกอย่างเป็นไปตามวิถีธรรมชาติ แล้วความมหัศจรรย์จะบังเกิด" },
+            70: { name: "มหาเทพหยวนฉือเทียนจุน (พระปฐมบรมศาสดา)", status: "👑 สูงสุดยอดเยี่ยม / ฟ้าดินประทานพร", overview: "พลังแห่งปฐมกำเนิด ฟ้าดินเปิดทางให้เริ่มต้นสิ่งยิ่งใหญ่ ชีวิตก้าวสู่จุดสูงสุดแห่งความสำเร็จ", careerFinance: "สร้างอาณาจักรธุรกิจหรือผลงานระดับตำนาน การเงินมั่งคั่งไร้ขีดจำกัด", love: "คนโสดเจอคู่ชีวิตที่ฟ้าลิขิตมาให้ คนมีคู่สร้างครอบครัวยิ่งใหญ่มั่นคง", advice: "จงทำหน้าที่ของตนเองให้ดีที่สุด สมกับที่ได้รับความเมตตาจากฟ้าดิน" },
+            71: { name: "มหาเทพท่งเทียนเจียวจู่", status: "⚡ พลังอำนาจสูงสุด / การเปลี่ยนแปลงจักรวาล", overview: "พลังงานมหาศาลในการพลิกฟื้นและสร้างสรรค์สิ่งใหม่ ยิ่งใหญ่ ทรงพลัง และน่าเกรงขาม", careerFinance: "โปรเจกต์ยักษ์ใหญ่พลิกโฉมวงการสำเร็จ การเงินสะพัดเงินหนาพอกพูน", love: "คนโสดเจอคนรักระดับซูเปอร์สตาร์หรือคนทรงอิทธิพล คนมีคู่ยิ่งใหญ่เกรียงไกร", advice: "พลังอันยิ่งใหญ่ต้องมาพร้อมกับความรับผิดชอบที่ยิ่งใหญ่เช่นกัน จงใช้อย่างมีสติ" },
+            72: { name: "มหาเทพยี่ว์ฮฺวังต้าตี้ (เง็กเซียนฮ่องเต้แห่งห้องสิน)", status: "🌟🌟 ใบจักรวาลเฮงที่สุด / มงคลนิรันดร์", overview: "จุดสูงสุดแห่งเซียมซีห้องสิน พรจากสวรรค์ชั้นฟ้าปกป้องคุ้มครอง ทุกสิ่งที่ปรารถนาจะเป็นจริงอย่างไร้เงื่อนไข", careerFinance: "ความสำเร็จระดับสูงสุดในชีวิต เกียรติยศชื่อเสียงเกริกไกร การเงินมั่งคั่งชั่วนิรันดร์", love: "ความรักสมบูรณ์แบบไร้ที่ติ ชีวิตคู่มั่นคงมีความสุขตราบนานเท่านาน", advice: "จงใช้ชีวิตด้วยความสำนึกในพระคุณ สร้างบุญกุศลและส่งต่อความสุขให้แก่โลกใบนี้" }
+        };
+
+    function drawSiemtsi() {
+            const randomNum = Math.floor(Math.random() * 72) + 1; // สุ่มจาก 1 ถึง 72 ครบถ้วน
+            const result = siemtsiDatabase[randomNum];
+
+            const container = document.getElementById('siemtsiResultContainer');
+            container.innerHTML = `
+                <div class="siemtsi-box">
+                    <div class="siemtsi-header">
+                        <div class="siemtsi-number">เซียมซีห้องสิน ใบที่ ${randomNum}</div>
+                        <div class="siemtsi-title">${result.name}</div>
+                        <div class="siemtsi-status">${result.status}</div>
+                    </div>
+                    <div class="siemtsi-section-title">🌟 ภาพรวมดวงชะตา</div>
+                    <div class="siemtsi-text">${result.overview}</div>
+                    
+                    <div class="siemtsi-section-title">💼 การงานและการเงิน</div>
+                    <div class="siemtsi-text">${result.careerFinance}</div>
+                    
+                    <div class="siemtsi-section-title">❤️ ความรัก</div>
+                    <div class="siemtsi-text">${result.love}</div>
+                    
+                    <div class="siemtsi-section-title">💡 คำแนะนำอากง</div>
+                    <div class="siemtsi-text">${result.advice}</div>
+                </div>
+            `;
+        }
+    </script>
+
+</body>
+</html>
